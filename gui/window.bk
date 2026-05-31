@@ -1,0 +1,83 @@
+"""
+File: ui_builder_project/gui/window.py
+Description: The main Tkinter application window.
+Orchestrates the layout manager, toolbar, menu bar, and the three core UI panels.
+"""
+
+import tkinter as tk
+from tkinter import ttk
+import webbrowser
+import config
+
+from .layout_manager import LayoutManager
+
+class ApplicationWindow(tk.Tk):
+    def __init__(self, db_manager, dev_server, compiler_engine):
+        super().__init__()
+        self.db = db_manager
+        self.server = dev_server
+        self.compiler = compiler_engine
+        
+        self.title(f"{config.APP_NAME} v{config.APP_VERSION}")
+        self.geometry("1300x800")
+        
+        self.layout_manager = LayoutManager(self)
+        
+        self.setup_toolbar()
+        self.setup_panels()
+        
+        # Default to Desktop layout on launch
+        self.layout_manager.apply_desktop_layout(self.frame_tree, self.frame_attr, self.frame_preview)
+        
+        # Ensure the server shuts down cleanly when the user clicks the 'X' button
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def setup_toolbar(self):
+        """Creates the top toolbar for workspace toggles and browser launching."""
+        toolbar = ttk.Frame(self, padding=5, relief="raised")
+        toolbar.pack(side="top", fill="x")
+        
+        ttk.Label(toolbar, text="Workspace:", font=("Arial", 10, "bold")).pack(side="left", padx=5)
+        
+        ttk.Button(toolbar, text="💻 Desktop", 
+                   command=lambda: self.layout_manager.apply_desktop_layout(self.frame_tree, self.frame_attr, self.frame_preview)).pack(side="left", padx=2)
+                   
+        ttk.Button(toolbar, text="📱 Mobile", 
+                   command=lambda: self.layout_manager.apply_mobile_layout(self.frame_tree, self.frame_attr, self.frame_preview)).pack(side="left", padx=2)
+        
+        # Launch browser button
+        ttk.Button(toolbar, text="🌐 Preview in Browser", command=self.open_browser).pack(side="right", padx=5)
+        ttk.Label(toolbar, text=f"Server Port: {config.DEFAULT_PORT}", foreground="green").pack(side="right", padx=15)
+
+    def setup_panels(self):
+        """
+        Initializes the three main panel frames. 
+        (The actual content of these frames will be imported from gui.panels)
+        """
+        self.frame_tree = ttk.LabelFrame(self, text="Project Explorer")
+        self.frame_attr = ttk.LabelFrame(self, text="Attributes")
+        self.frame_preview = ttk.LabelFrame(self, text="Live Render Preview")
+        
+        # Placeholder content until we build the specific panel classes
+        ttk.Label(self.frame_tree, text="Treeview loads here...").pack(pady=20)
+        ttk.Label(self.frame_attr, text="Properties load here...").pack(pady=20)
+        ttk.Label(self.frame_preview, text="pywebview embedded browser loads here...").pack(pady=20)
+
+    def trigger_recompile(self):
+        """
+        Called whenever a user changes a property. 
+        Forces the HTML compiler to run, then refreshes the live preview pane.
+        """
+        self.compiler.compile()
+        print("Recompiled HTML files.")
+        # Future step: trigger self.preview_panel.reload()
+
+    def open_browser(self):
+        """Opens the compiled website in the user's default OS browser."""
+        webbrowser.open(f"http://localhost:{config.DEFAULT_PORT}")
+
+    def on_closing(self):
+        """Cleanup operations before quitting."""
+        self.server.stop()
+        self.db.close()
+        self.destroy()
