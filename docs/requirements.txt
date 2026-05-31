@@ -1,0 +1,106 @@
+This is the perfect time to consolidate everything into a master blueprint. Having a unified Software Requirements Specification (SRS) and Architecture Plan will keep the development focused and ensure that every new Python script snaps perfectly into the broader ecosystem.
+Here is the comprehensive, updated project plan based on our architectural decisions.
+# **Master Architecture & Requirements Plan**
+**Project:** Modular UI/UX Builder & Web Web Generator
+**Document Version:** 2.0 (Adaptive Workspace & Live Server Edition)
+───────────
+### **Executive Summary**
+A scalable, Object-Oriented Python application designed for Rapid Application Development (RAD). The tool provides a visual, drag-and-drop Tkinter interface that allows users to design UI layouts (Desktop and Mobile) backed by a relational SQLite database. It decouples the visual design environment from the rendering engine, utilizing a modular HTML compiler and an embedded local development server to provide a live, pixel-perfect preview of the generated code.
+───────────
+### **1. System Architecture & Directory Structure**
+The application is strictly modular. The UI, the database, the element logic, and the compiler are separated to allow future expansion (e.g., adding React or Vue compilers later without changing the UI).
+```text
+ui_builder_project/
+│
+├── main.py                 # Application entry point; initializes GUI, DB, and Server
+├── config.py               # Global settings, default paths, and constants
+│
+├── core/
+│   ├── database.py         # SQLite connection, schema setup (Pages, Elements, Flows)
+│   └── project_manager.py  # Handles Save/Load/Export (.uidb files) and Templates
+│
+├── elements/               # Object-Oriented UI Components (The Building Blocks)
+│   ├── base_element.py     # Abstract class defining common traits (x, y, HTML render logic)
+│   ├── buttons.py          # Standard, Icon, and Submit buttons
+│   ├── inputs.py           # Textbox, DatePicker, Dropdown, Input classes
+│   ├── typography.py       # Heading, Subheading, Label classes
+│   └── navigation.py       # Menubar, Hamburger icon classes
+│
+├── gui/                    # Tkinter Visual Designer
+│   ├── window.py           # Main Tkinter root window and menu bar
+│   ├── layout_manager.py   # Handles PanedWindow logic (Mobile vs Desktop layouts)
+│   ├── panels/
+│   │   ├── explorer.py     # Left panel: Treeview hierarchy
+│   │   ├── properties.py   # Right panel: Dynamic attributes form based on element type
+│   │   └── web_preview.py  # Center/Bottom panel: Live HTML preview (via pywebview)
+│   └── dialogs.py          # Pop-up windows (Settings, Export options)
+│
+├── compiler/
+│   ├── html_engine.py      # Translates element objects into absolute-positioned HTML
+│   ├── css_engine.py       # Generates external/inline stylesheets
+│   └── templates.py        # Pre-built HTML wrappers and boilerplate
+│
+└── server/
+    └── dev_server.py       # Background daemon running http.server for live browser testing
+
+```
+───────────
+### **2. Core Modules & Technical Specifications**
+**2.1 Database Layer (SQLite .uidb files)**
+The single source of truth for the project state.
+ * **pages Table:** Manages the screen hierarchy (id, name, parent_id).
+ * **elements Table:** Stores UI components (id, page_id, name, type, x, y, width, height, extra_attr as JSON).
+ * **flows Table:** Manages linear navigation logic (element_id, target_page_id).
+**2.2 Object-Oriented Element Library**
+Elements are instances of Python classes. They encapsulate their own rendering logic.
+ * *Requirement:* An Input class must know it requires a "placeholder" attribute and must contain a .to_html() method that returns <input type="text" placeholder="...">.
+**2.3 Adaptive Graphical User Interface (GUI)**
+Built with Tkinter and ttk.PanedWindow to allow user-adjustable panel sizing.
+ * **Desktop Mode:** 3 vertical columns (Treeview | Attributes | Live Web Preview).
+ * **Mobile Mode:** Split horizontal (Treeview + Attributes on top), vertical (Live Web Preview on bottom).
+ * **Dynamic Properties:** The Attributes panel must wipe and redraw its input fields dynamically by reading the properties of the currently selected Element class.
+**2.4 Compiler & Live Preview Engine**
+The bridge between the database and the visual output.
+ * **Background Compilation:** Every change in the Attributes panel triggers an SQL UPDATE and a silent recompile of the index.html file by the html_engine.py.
+ * **Local Server:** dev_server.py runs on a background thread (e.g., Port 8000), serving the compiled HTML directory.
+ * **Live Rendering:** The Tkinter app uses a library (like pywebview or CEF) to render localhost:8000 directly inside the GUI, refreshing automatically on compile.
+───────────
+### **3. User Workflows**
+**Workflow A: Designing a Screen**
+ 1. User clicks "+ Page" in the Explorer panel.
+ 2. User selects the page and clicks "+ Element" (e.g., "Menu Bar").
+ 3. The Element is inserted into SQLite and the Treeview.
+ 4. User selects the Menu Bar; the Attributes Panel generates fields for "X/Y/W/H" and "Menu Items".
+ 5. User updates "Menu Items". The Compiler generates the HTML, saves it, and the embedded preview pane refreshes instantly.
+**Workflow B: Creating a Clickable Prototype**
+ 1. User creates "Home" and "Dashboard" pages.
+ 2. User adds a "Login Button" element to "Home".
+ 3. In the Attributes panel, user sets *Target Page* to "Dashboard".
+ 4. User clicks "Open in Browser" from the toolbar.
+ 5. The PC's default browser opens localhost:8000. Clicking the Login button routes the browser to dashboard.html.
+───────────
+### **4. Phased Development Roadmap**
+This roadmap allows for iterative testing. Each phase results in a functional, testable milestone.
+**Phase 1: Foundation (Data & Compiler)**
+ * Implement core/database.py and file saving/loading.
+ * Create the abstract UIElement class and 3 basic elements (Button, Label, Input).
+ * Build the standalone compiler/html_engine.py script.
+ * *Milestone:* Ability to write raw database entries and run a script to get a static HTML website.
+**Phase 2: GUI Shell & Adaptive Layout**
+ * Build gui/window.py and gui/layout_manager.py.
+ * Implement the PanedWindow toggles for Mobile and Desktop views.
+ * Integrate the Treeview (explorer.py).
+ * *Milestone:* A working desktop application shell that can switch layouts and display dummy data in a tree.
+**Phase 3: The Dynamic Engine**
+ * Build gui/properties.py to auto-generate forms based on selected elements.
+ * Wire the properties panel to the SQLite database to enable real-time CRUD operations.
+ * *Milestone:* User can add, edit, and delete elements entirely through the Tkinter UI.
+**Phase 4: Live Server & Preview Integration**
+ * Build server/dev_server.py to handle background threading for http.server.
+ * Connect the "Apply Changes" button in the properties panel to trigger the compiler and refresh the server.
+ * Integrate pywebview into gui/panels/web_preview.py.
+ * *Milestone:* A true WYSIWYG (What You See Is What You Get) editor with live HTML rendering.
+**Phase 5: Expansion & Polish**
+ * Expand the element library (elements/ directory) to include advanced components (Images, Navbars, Date Pickers, Icons).
+ * Implement the "Templates" feature (e.g., injecting the standard Business Template).
+ * Add ZIP export functionality for users to download their generated websites.

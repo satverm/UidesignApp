@@ -1,0 +1,35 @@
+Creating a master index is a highly effective way to track our progress systematically. This numbered roadmap will serve as our checklist as we develop each module.
+Here is the complete ordered list of files within the ui_builder_project/ directory:
+**Root Level**
+ 1. **main.py**: The application entry point that initializes the GUI, database, and background server.
+ 2. **config.py**: Defines global constants, directory paths, and application metadata.
+**Documentation**
+3. **docs/architecture.md**: The master Software Requirements Specification (SRS) and architecture blueprint.
+**Core Data Layer**
+4. **core/__init__.py**: Exposes the core modules to the rest of the application.
+5. **core/database.py**: Manages the SQLite connection, relational schema, and CRUD queries.
+6. **core/project_manager.py**: Handles creating, saving, and loading .uidb project files and templates.
+**Element Object Library**
+7. **elements/__init__.py**: Exposes the element classes to the GUI and compiler.
+8. **elements/base_element.py**: The abstract base class defining common properties (x, y, width) and render methods.
+9. **elements/buttons.py**: Classes for Standard, Icon, and Submit buttons.
+10. **elements/inputs.py**: Classes for Textboxes, DatePickers, and standard Text Inputs.
+11. **elements/typography.py**: Classes for Headings, Subheadings, and Labels.
+12. **elements/navigation.py**: Classes for Menu bars and Hamburger icons.
+**GUI (Visual Designer)**
+13. **gui/__init__.py**: Exposes the GUI components.
+14. **gui/window.py**: The main Tkinter application class and top-level menu bar.
+15. **gui/layout_manager.py**: Manages the PanedWindow logic for switching between Mobile and Desktop layouts.
+16. **gui/dialogs.py**: Contains pop-up classes for settings, alerts, and export options.
+17. **gui/panels/__init__.py**: Exposes the individual layout panels.
+18. **gui/panels/explorer.py**: The left panel containing the Treeview hierarchy of pages and elements.
+19. **gui/panels/properties.py**: The right panel that dynamically generates input forms based on the selected element type.
+20. **gui/panels/web_preview.py**: The center/bottom panel that embeds pywebview for live HTML rendering.
+**Compiler Engine**
+21. **compiler/__init__.py**: Exposes the compilation tools.
+22. **compiler/html_engine.py**: Translates element objects into absolute-positioned HTML files.
+23. **compiler/css_engine.py**: Extracts styling attributes to generate external or inline CSS files.
+24. **compiler/templates.py**: Stores pre-built HTML wrappers and standard <head> boilerplate.
+**Local Server**
+25. **server/__init__.py**: Exposes the server module.
+26. **server/dev_server.py**: A background daemon running http.server to allow live browser testing of compiled files.
